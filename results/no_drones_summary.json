@@ -1,0 +1,16 @@
+{
+  "scenario": "no_drones",
+  "description": "No drone intervention (uncontrolled fire)",
+  "num_drones": 0,
+  "wind_speed": 5.0,
+  "total_ticks": 5000,
+  "sim_time_s": 500.0,
+  "wall_time_s": 117.6,
+  "mission_complete": false,
+  "peak_burning": 1413,
+  "peak_ember": 70,
+  "total_burned": 4134,
+  "total_wet": 1969,
+  "final_burning": 1398,
+  "csv_path": "results/no_drones_ticks.csv"
+}

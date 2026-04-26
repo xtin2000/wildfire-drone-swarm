@@ -1,0 +1,9 @@
+{
+  "name": "Default Wildfire",
+  "description": "Moderate wind, single ignition point, 10 firefighters",
+  "wind_speed": 5.0,
+  "wind_dir_deg": 0,
+  "fire_starts": [[100, 100], [105, 98], [98, 103]],
+  "num_drones": 100,
+  "seed": 42
+}

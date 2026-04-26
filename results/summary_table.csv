@@ -1,0 +1,8 @@
+scenario,description,num_drones,wind_speed,total_ticks,sim_time_s,wall_time_s,mission_complete,peak_burning,peak_ember,total_burned,total_wet,final_burning,csv_path
+baseline,"Default configuration (100 drones, 5 m/s wind)",100,5.0,5000,500.0,1481.2,False,456,23,1119,2179,449,results/baseline_ticks.csv
+high_wind,"High wind scenario (10 m/s, SE direction)",100,10.0,5000,500.0,1360.6,False,2273,96,6977,2057,2265,results/high_wind_ticks.csv
+drones_25,Reduced fleet: 25 drones,25,5.0,5000,500.0,693.9,False,1550,80,4383,1954,1537,results/drones_25_ticks.csv
+drones_50,Reduced fleet: 50 drones,50,5.0,5000,500.0,1543.3,False,1454,70,4187,1960,1443,results/drones_50_ticks.csv
+drones_150,Enlarged fleet: 150 drones,150,5.0,5000,500.0,2181.4,False,476,20,1121,2255,450,results/drones_150_ticks.csv
+no_drones,No drone intervention (uncontrolled fire),0,5.0,5000,500.0,117.6,False,1413,70,4134,1969,1398,results/no_drones_ticks.csv
+high_wind_150,High wind (10 m/s) with 150 drones,150,10.0,5000,500.0,2838.5,False,2273,96,6977,2057,2265,results/high_wind_150_ticks.csv

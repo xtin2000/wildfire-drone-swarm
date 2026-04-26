@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Personal / work-in-progress
+update_thesis.py
+results_long/
+thesis_section5_additions.md
+*.docx
+*.docx#
+
+# IDE
+.vscode/
+.idea/
+*.swp

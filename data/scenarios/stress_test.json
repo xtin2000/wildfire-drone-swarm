@@ -1,0 +1,12 @@
+{
+  "name": "High-Wind Stress Test",
+  "description": "Strong wind (10 m/s), multiple ignition points, tests drone stability limits",
+  "wind_speed": 10.0,
+  "wind_dir_deg": 30,
+  "fire_starts": [
+    [80, 90], [95, 100], [110, 85],
+    [120, 110], [75, 105]
+  ],
+  "num_drones": 100,
+  "seed": 7
+}

@@ -1,0 +1,16 @@
+{
+  "scenario": "high_wind_150",
+  "description": "High wind (10 m/s) with 150 drones",
+  "num_drones": 150,
+  "wind_speed": 10.0,
+  "total_ticks": 5000,
+  "sim_time_s": 500.0,
+  "wall_time_s": 2838.5,
+  "mission_complete": false,
+  "peak_burning": 2273,
+  "peak_ember": 96,
+  "total_burned": 6977,
+  "total_wet": 2057,
+  "final_burning": 2265,
+  "csv_path": "results/high_wind_150_ticks.csv"
+}
