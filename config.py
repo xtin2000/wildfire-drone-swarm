@@ -86,6 +86,35 @@ SOUND_SPL_THRESHOLD  = 110.0   # dB; minimum for any suppression
 SOUND_SPL_SATURATION = 130.0   # dB; maximum effectiveness
 SOUND_MAX_RANGE      = 15.0    # m; beyond this SPL < threshold
 
+# ── Rotor wash (multirotor downwash aerodynamics) ──────────────────────────────
+# Always physically present when drones hover; modeled as actuator-disk theory
+# with linear wake decay. See physics/aerodynamics.py.
+ROTOR_TOTAL_AREA          = 0.20    # m² combined disk area across all rotors
+ROTOR_WASH_DECAY_LENGTH   = 10.0    # m altitude scale for wake velocity decay
+ROTOR_WASH_FOOTPRINT_BASE = 1.5     # m base footprint radius at the drone
+ROTOR_WASH_SPREAD_RATE    = 0.15    # m radius gain per m of altitude
+ROTOR_WASH_EMBER_RATE     = 10.0    # J/s suppression rate on STATE_EMBER cells (reduced from
+                                     # 50 to 10 — the original value was a calibration choice,
+                                     # not a measured rate. 10 J/s extinguishes a 6 J ember cell
+                                     # in 0.6 s, consistent with the qualitative observation
+                                     # that small flamelets can be disrupted by modest airflow
+                                     # but conservative compared to a near-instant kill rate.)
+ROTOR_WASH_BURNING_RATE   = 0.0     # J/s suppression rate on STATE_BURNING cells (reduced
+                                     # from 5 to 0 — published literature does not support
+                                     # small-drone rotor wash disrupting an established flame
+                                     # front; established fires sustain themselves through
+                                     # their own convective updraft and resist 4 m/s downwash.
+                                     # Setting to zero is the conservative literature-honest
+                                     # choice.)
+ROTOR_WASH_EMBER_DRAG     = 1.5     # m/s² downward acceleration applied to airborne embers in column
+
+# ── Mechanism toggles (for ablation studies) ───────────────────────────────────
+ROTOR_WASH_ENABLED = True   # If False, drones produce no downwash effect
+ACOUSTIC_ENABLED   = True   # If False, drones do not emit acoustic energy
+ROTOR_WASH_EMBER_DRAG_ENABLED = True  # If False, rotor wash does not drag airborne embers down (isolates the
+                                       # ground-cell suppression contribution from the airborne-ember
+                                       # contribution).
+
 # Sensors
 THERMAL_FOV_DEG   = 90.0   # half-angle field of view
 THERMAL_RANGE     = 30.0   # m
@@ -95,8 +124,14 @@ ANEM_NOISE_STD    = 0.3    # m/s wind measurement noise
 
 # ── Swarm coordination ─────────────────────────────────────────────────────────
 MIN_DRONE_SEPARATION = 5.0   # m minimum inter-drone distance
-SAFE_FIRE_DISTANCE   = 10.0  # m minimum drone distance from fire edge
-MAX_FIRE_DISTANCE    = 20.0  # m maximum effective range from target fire cell
+SAFE_FIRE_DISTANCE   = 5.0   # m minimum drone distance from fire edge (tightened from 10 m
+                              # to keep on-axis SPL meaningfully above the 110 dB threshold;
+                              # at the previous 10 m horizontal + 15 m altitude geometry the
+                              # 3D distance was 21 m and effective SPL ≈ 111 dB, barely above
+                              # threshold)
+MAX_FIRE_DISTANCE    = 10.0  # m maximum effective range from target fire cell (tightened
+                              # from 20 m for the same reason; at 20 m horizontal the SPL was
+                              # below threshold)
 TASK_REALLOC_HYSTERESIS = 0.1 # minimum score improvement to trigger reassignment
 VO_TIME_HORIZON      = 3.0   # seconds for velocity obstacle lookahead
 

@@ -100,24 +100,44 @@ class FireSpreadModel:
                 grid.ignite(int(c), int(r))
 
     def _apply_suppression(self) -> None:
-        """Check accumulated suppression energy and extinguish qualifying cells."""
+        """Check accumulated suppression energy and extinguish qualifying cells.
+
+        Operates on both BURNING cells (full flames) and EMBER cells (small,
+        nascent ignitions). Embers are easier to extinguish: their effective
+        threshold uses a floor on intensity since real intensity is ~0.1.
+        """
         grid = self.grid
         burning = grid.burning_mask()
+        ember = grid.cell_state == config.STATE_EMBER
 
-        # Suppression threshold scales with burn intensity (harder to kill hotter fire)
+        # Threshold for burning cells: scales with intensity (harder to kill hotter fire).
+        # Threshold for ember cells: small floor so embers can be extinguished cleanly
+        # by even modest suppression energy (consistent with §4.13 — embers are easy
+        # to disrupt with rotor wash or acoustic forcing).
         threshold = config.FIRE_SUPPRESSION_THRESHOLD_BASE * grid.burn_intensity
+        # Use intensity floor of 0.2 for embers (so threshold is at least 6 J at
+        # FIRE_SUPPRESSION_THRESHOLD_BASE=30) — easier than full burning cells
+        ember_threshold_floor = config.FIRE_SUPPRESSION_THRESHOLD_BASE * 0.2
+        threshold_eff = np.where(ember, ember_threshold_floor, threshold)
+
+        suppressible = burning | ember
 
         # Cells with enough accumulated energy get extinguished
-        to_extinguish = burning & (grid.suppression_applied >= threshold)
+        to_extinguish = suppressible & (grid.suppression_applied >= threshold_eff)
         rows, cols = np.where(to_extinguish)
         for r, c in zip(rows, cols):
             grid.extinguish(int(c), int(r))
 
-        # Also partially reduce intensity on partially-suppressed cells
+        # Partial intensity reduction on burning cells that received some energy
+        # but not enough to extinguish (cooling effect of sustained forcing)
         partial = burning & (grid.suppression_applied > 0) & ~to_extinguish
-        grid.burn_intensity[partial] -= (
-            grid.suppression_applied[partial] / threshold[partial]
-        ).clip(0, 0.3)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            reduction = np.where(
+                threshold > 0,
+                grid.suppression_applied / np.maximum(threshold, 1e-9),
+                0.0,
+            ).clip(0, 0.3)
+        grid.burn_intensity[partial] -= reduction[partial]
 
     def _age_burned_cells(self, dt: float) -> None:
         """Cells that have burned long enough transition to BURNED (ash)."""

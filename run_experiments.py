@@ -25,39 +25,100 @@ import numpy as np
 # ── Scenario definitions ─────────────────────────────────────────────────────
 
 SCENARIOS = {
-    "baseline": {
-        "description": "Default configuration (100 drones, 5 m/s wind)",
-        "overrides": {},
+    # ── Acoustic + rotor wash (realistic full-physics drone) ─────────────────
+    "combined_baseline": {
+        "description": "100 drones, both rotor wash and acoustic (5 m/s wind)",
+        "overrides": {"ROTOR_WASH_ENABLED": True, "ACOUSTIC_ENABLED": True},
     },
-    "high_wind": {
-        "description": "High wind scenario (10 m/s, SE direction)",
+    "combined_high_wind": {
+        "description": "100 drones, both mechanisms, 10 m/s wind",
         "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
             "WIND_BASE_SPEED": 10.0,
             "WIND_BASE_DIR": float(np.radians(135)),
         },
     },
-    "drones_25": {
-        "description": "Reduced fleet: 25 drones",
-        "overrides": {"NUM_DRONES": 25},
+    # ── Rotor wash only (drones hover but don't emit acoustic) ───────────────
+    "rotor_only_baseline": {
+        "description": "100 drones, rotor wash only, no acoustic (5 m/s wind)",
+        "overrides": {"ROTOR_WASH_ENABLED": True, "ACOUSTIC_ENABLED": False},
     },
-    "drones_50": {
-        "description": "Reduced fleet: 50 drones",
-        "overrides": {"NUM_DRONES": 50},
+    "rotor_only_high_wind": {
+        "description": "100 drones, rotor wash only, 10 m/s wind",
+        "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": False,
+            "WIND_BASE_SPEED": 10.0,
+            "WIND_BASE_DIR": float(np.radians(135)),
+        },
     },
-    "drones_150": {
-        "description": "Enlarged fleet: 150 drones",
-        "overrides": {"NUM_DRONES": 150},
-    },
+    # ── Control: no drones at all ────────────────────────────────────────────
     "no_drones": {
         "description": "No drone intervention (uncontrolled fire)",
         "overrides": {"NUM_DRONES": 0},
     },
-    "high_wind_150": {
-        "description": "High wind (10 m/s) with 150 drones",
+    # ── Fleet-size ablation (combined physics) ───────────────────────────────
+    "combined_drones_25": {
+        "description": "25 drones, both mechanisms",
         "overrides": {
-            "WIND_BASE_SPEED": 10.0,
-            "WIND_BASE_DIR": float(np.radians(135)),
+            "NUM_DRONES": 25,
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+        },
+    },
+    "combined_drones_50": {
+        "description": "50 drones, both mechanisms",
+        "overrides": {
+            "NUM_DRONES": 50,
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+        },
+    },
+    "combined_drones_150": {
+        "description": "150 drones, both mechanisms",
+        "overrides": {
             "NUM_DRONES": 150,
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+        },
+    },
+    # ── Sensitivity: rotor wash strength sweep ───────────────────────────────
+    "combined_wash_half": {
+        "description": "Combined mechanisms, rotor wash ember rate halved (25 J/s)",
+        "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+            "ROTOR_WASH_EMBER_RATE": 25.0,
+        },
+    },
+    "combined_wash_double": {
+        "description": "Combined mechanisms, rotor wash ember rate doubled (100 J/s)",
+        "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+            "ROTOR_WASH_EMBER_RATE": 100.0,
+        },
+    },
+    # ── 2×2 factorial: drones × firefighters (under Option B firefighter physics) ──
+    "pure_fire": {
+        "description": "No drones, no firefighters — pure fire dynamics baseline",
+        "overrides": {"NUM_DRONES": 0, "NUM_FIREFIGHTERS": 0},
+    },
+    "drones_only": {
+        "description": "100 drones (combined mechanisms), no firefighters",
+        "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+            "NUM_FIREFIGHTERS": 0,
+        },
+    },
+    "combined_no_ember_drag": {
+        "description": "Combined mechanisms but rotor wash does NOT drag airborne embers down",
+        "overrides": {
+            "ROTOR_WASH_ENABLED": True,
+            "ACOUSTIC_ENABLED": True,
+            "ROTOR_WASH_EMBER_DRAG_ENABLED": False,
         },
     },
 }

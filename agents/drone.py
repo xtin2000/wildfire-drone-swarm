@@ -15,6 +15,11 @@ from agents.flight_controller import FlightController
 from agents.sound_emitter import SoundEmitter
 from agents.sensors import SensorSuite, SensorReading
 from physics.flight_dynamics import stability_factor
+from physics.aerodynamics import (
+    rotor_wash_velocity,
+    rotor_wash_footprint_radius,
+    rotor_wash_radial_factor,
+)
 from environment.grid import TerrainGrid
 
 
@@ -125,7 +130,9 @@ class DroneAgent:
         self.battery.consume(float(np.linalg.norm(self.velocity)), self.emitter.is_active, dt)
 
     def deliver_suppression(self, grid: TerrainGrid) -> None:
-        """Called after step() to deposit energy into the grid."""
+        """Called after step() to deposit acoustic energy into the grid."""
+        if not config.ACOUSTIC_ENABLED:
+            return
         if not self.emitter.is_active or self.task is None:
             return
         wind = self._last_sensor_reading.wind if self._last_sensor_reading else np.zeros(2)
@@ -135,6 +142,66 @@ class DroneAgent:
         )
         col, row = self.task.target_cell
         grid.apply_suppression(col, row, energy)
+
+    def deliver_rotor_wash(self, grid: TerrainGrid) -> None:
+        """Apply rotor downwash to ground cells under the drone.
+
+        Rotor wash is physically present whenever the drone is hovering or
+        emitting (i.e. holding station). It primarily disrupts ember-state cells
+        (small, surface-level ignitions) and has a minor effect on burning cells.
+        """
+        if not config.ROTOR_WASH_ENABLED:
+            return
+        if self.state not in (DroneState.HOVERING, DroneState.EMITTING):
+            return
+
+        altitude = float(self.position[2])
+        if altitude <= 0:
+            return
+
+        v_wash = rotor_wash_velocity(altitude)
+        radius = rotor_wash_footprint_radius(altitude)
+        radius_cells = int(np.ceil(radius / config.CELL_SIZE)) + 1
+
+        col_center, row_center = grid.world_to_cell(
+            float(self.position[0]), float(self.position[1])
+        )
+
+        for dr in range(-radius_cells, radius_cells + 1):
+            for dc in range(-radius_cells, radius_cells + 1):
+                r, c = row_center + dr, col_center + dc
+                if not grid.in_bounds(c, r):
+                    continue
+
+                cell_world_x = (c + 0.5) * config.CELL_SIZE
+                cell_world_y = (r + 0.5) * config.CELL_SIZE
+                lateral = float(np.hypot(
+                    cell_world_x - self.position[0],
+                    cell_world_y - self.position[1],
+                ))
+                if lateral >= radius:
+                    continue
+
+                radial = rotor_wash_radial_factor(lateral, altitude)
+                if radial <= 0:
+                    continue
+
+                cell_state = grid.cell_state[r, c]
+                # Rotor wash effectiveness scales with both wash velocity and
+                # radial position. Effect is much stronger on small/embryonic
+                # fires than on established burning cells.
+                if cell_state == config.STATE_EMBER:
+                    rate = config.ROTOR_WASH_EMBER_RATE
+                elif cell_state == config.STATE_BURNING:
+                    rate = config.ROTOR_WASH_BURNING_RATE
+                else:
+                    continue
+
+                # Energy deposited this tick, scaled by relative wash strength
+                # (v_wash / nominal disk velocity at zero altitude)
+                strength = v_wash / max(1.0, rotor_wash_velocity(0.1))
+                energy = rate * strength * radial * config.DT
+                grid.apply_suppression(c, r, energy)
 
     def broadcast_state(self) -> DroneMessage:
         return DroneMessage(

@@ -54,7 +54,10 @@ class FirefighterZone:
                 pos += diff / dist * config.FIREFIGHTER_SPEED * dt
             self._positions[i] = pos
 
-            # Apply water spray to nearby cells
+            # Apply water spray to nearby cells. Water both saturates moisture
+            # (preventing future ignition) and extinguishes any active flame —
+            # heat absorption + saturation, the two physical effects of water
+            # on burning fuel.
             col0 = int(pos[0] / config.CELL_SIZE)
             row0 = int(pos[1] / config.CELL_SIZE)
             r_cells = int(config.FIREFIGHTER_WATER_RADIUS / config.CELL_SIZE) + 1
@@ -66,6 +69,9 @@ class FirefighterZone:
                         continue
                     wx, wy = grid.cell_to_world(col, row)
                     if np.hypot(wx - pos[0], wy - pos[1]) <= config.FIREFIGHTER_WATER_RADIUS:
+                        cell_state = grid.cell_state[row, col]
+                        if cell_state in (config.STATE_BURNING, config.STATE_EMBER):
+                            grid.extinguish(col, row)
                         grid.wet_cell(col, row)
 
     @property

@@ -23,9 +23,13 @@ Thumbs.db
 # Personal / work-in-progress
 update_thesis.py
 results_long/
+results_v2/
 thesis_section5_additions.md
 *.docx
 *.docx#
+
+# Claude Code machine-local state
+.claude/
 
 # IDE
 .vscode/

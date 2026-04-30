@@ -133,11 +133,14 @@ class Simulation:
         for drone in self.drones:
             drone.step(dt, snap)
             drone.deliver_suppression(self.grid)
+            drone.deliver_rotor_wash(self.grid)
 
         # ── Phase 6: fire model consumes suppression, then reset ──────────────
         self.fire.step(dt)
         self.grid.reset_suppression()  # clear accumulator after fire model used it
-        self.embers.step(dt, self.wind.field)
+        drone_positions = np.array([d.position for d in self.drones]) if self.drones else None
+        drone_states = [d.state for d in self.drones] if self.drones else None
+        self.embers.step(dt, self.wind.field, drone_positions, drone_states)
         self.firefighters.step(dt, self.grid)
 
         # ── Phase 7: planner metrics ──────────────────────────────────────────
