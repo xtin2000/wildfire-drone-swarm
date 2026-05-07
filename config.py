@@ -53,14 +53,20 @@ EMBER_MAX_AGE         = 20.0    # seconds; embers burn out after this
 NUM_DRONES = 100
 
 # Physical specs
-DRONE_MASS          = 5.0    # kg
-DRONE_MAX_THRUST    = 80.0   # N (1.6× hover thrust)
+DRONE_MASS          = 8.0    # kg (heavy-lift heat-hardened class — Matrice-350-equivalent
+                              # airframe + ~3 kg of ceramic-coated panels, aerogel battery
+                              # insulation, sealed/smoke-filtered motor housings, encapsulated
+                              # avionics, raised from 5 kg in the original configuration)
+DRONE_MAX_THRUST    = 130.0  # N (≈1.65× hover thrust, scaled with mass)
 DRONE_CD            = 0.4    # drag coefficient
-DRONE_FRONTAL_AREA  = 0.05   # m²
+DRONE_FRONTAL_AREA  = 0.08   # m² (larger body cross-section)
 DRONE_MAX_SPEED     = 15.0   # m/s horizontal
 DRONE_MAX_VSPEED    = 5.0    # m/s vertical
-DRONE_CRUISE_ALT    = 15.0   # m AGL operating altitude
-DRONE_MAX_WIND      = 12.0   # m/s; above this drone returns to base
+DRONE_CRUISE_ALT    = 5.0    # m AGL operating altitude (lowered from 15 m so rotor wash
+                              # actually exceeds ambient wind at the target cell, and so 3D
+                              # distance to target stays inside the SPL-effective regime)
+DRONE_MAX_WIND      = 15.0   # m/s; above this drone returns to base (raised from 12 m/s with
+                              # the larger platform's higher stability margin)
 AIR_DENSITY         = 1.225  # kg/m³ at sea level
 
 # PID gains (position control)
@@ -70,7 +76,7 @@ PID_KD = 0.5
 WIND_FF_GAIN = 0.8           # feedforward wind compensation gain
 
 # Battery
-BATTERY_CAPACITY_WH  = 1500.0  # Wh (large UAV)
+BATTERY_CAPACITY_WH  = 2000.0  # Wh (large UAV with thermal-management overhead)
 BATTERY_P_HOVER      = 350.0   # W
 BATTERY_P_SENSORS    = 10.0    # W
 BATTERY_LOW_THRESH   = 0.20    # fraction; triggers return-to-base
@@ -89,7 +95,9 @@ SOUND_MAX_RANGE      = 15.0    # m; beyond this SPL < threshold
 # ── Rotor wash (multirotor downwash aerodynamics) ──────────────────────────────
 # Always physically present when drones hover; modeled as actuator-disk theory
 # with linear wake decay. See physics/aerodynamics.py.
-ROTOR_TOTAL_AREA          = 0.20    # m² combined disk area across all rotors
+ROTOR_TOTAL_AREA          = 0.30    # m² combined disk area (larger rotors give a thrust margin
+                                     # for fire-induced thermal-plume turbulence and support the
+                                     # heavier 8 kg airframe; raised from 0.20 m²)
 ROTOR_WASH_DECAY_LENGTH   = 10.0    # m altitude scale for wake velocity decay
 ROTOR_WASH_FOOTPRINT_BASE = 1.5     # m base footprint radius at the drone
 ROTOR_WASH_SPREAD_RATE    = 0.15    # m radius gain per m of altitude
@@ -124,14 +132,13 @@ ANEM_NOISE_STD    = 0.3    # m/s wind measurement noise
 
 # ── Swarm coordination ─────────────────────────────────────────────────────────
 MIN_DRONE_SEPARATION = 5.0   # m minimum inter-drone distance
-SAFE_FIRE_DISTANCE   = 5.0   # m minimum drone distance from fire edge (tightened from 10 m
-                              # to keep on-axis SPL meaningfully above the 110 dB threshold;
-                              # at the previous 10 m horizontal + 15 m altitude geometry the
-                              # 3D distance was 21 m and effective SPL ≈ 111 dB, barely above
-                              # threshold)
-MAX_FIRE_DISTANCE    = 10.0  # m maximum effective range from target fire cell (tightened
-                              # from 20 m for the same reason; at 20 m horizontal the SPL was
-                              # below threshold)
+SAFE_FIRE_DISTANCE   = 2.0   # m minimum drone distance from fire edge (tightened to literature-
+                              # validated regime; assumes the heat-hardened platform class above
+                              # can survive sustained close-range thermal exposure — see §5.9.3
+                              # for the operating-time-budget caveat)
+MAX_FIRE_DISTANCE    = 5.0   # m maximum effective range from target fire cell (tightened to
+                              # the regime where on-axis SPL is well above the 110 dB threshold
+                              # and rotor-wash velocity at the ground exceeds ambient wind)
 TASK_REALLOC_HYSTERESIS = 0.1 # minimum score improvement to trigger reassignment
 VO_TIME_HORIZON      = 3.0   # seconds for velocity obstacle lookahead
 
